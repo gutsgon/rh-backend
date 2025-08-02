@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36327.8 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rh-Backend", "Rh-Backend\Rh-Backend.csproj", "{3ECB2252-6F64-409F-AE50-A6C0DD91D1FE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3ECB2252-6F64-409F-AE50-A6C0DD91D1FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3ECB2252-6F64-409F-AE50-A6C0DD91D1FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3ECB2252-6F64-409F-AE50-A6C0DD91D1FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3ECB2252-6F64-409F-AE50-A6C0DD91D1FE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E7B60A11-8058-433B-B552-5386B36D10D0}
+	EndGlobalSection
+EndGlobal
