@@ -6,14 +6,15 @@ namespace Rh_Backend.Repository.Interfaces
 {
     public interface IFuncionarioRepository
     {
-        public Task<IEnumerable<FuncionarioModel>> GetAllAsync();
-        public Task<FuncionarioDetalhesDTO> GetWithDetailsAsync(long id);
-        public Task<IEnumerable<FuncionarioModel>> SearchAsync(DateTime? dataAdmissao, string nome, decimal salario, bool status);
-        public Task<IEnumerable<FuncionarioModel>> GetByCargoAsync(string cargo);
-        public Task<FuncionarioModel?> GetByIdAsync(long id);
-        public Task<FuncionarioModel> CreateAsync(FuncionarioModel funcionario);
-        public Task<FuncionarioModel> UpdateAsync(FuncionarioModel funcionario);
-        public Task<bool> DeleteAsync(long id);
+        Task<IEnumerable<FuncionarioModel>> GetAllAsync();
+        Task<FuncionarioDetalhesDTO> GetWithDetailsAsync(long id);
+        Task<IEnumerable<FuncionarioComCargoDTO>> GetFuncionariosWithCargo();
+        Task<IEnumerable<FuncionarioModel>> SearchAsync(DateTime? dataAdmissao, string nome, decimal salario, bool status);
+        Task<IEnumerable<FuncionarioModel>> GetByCargoAsync(string cargo);
+        Task<FuncionarioModel?> GetByIdAsync(long id);
+        Task<FuncionarioModel> CreateAsync(FuncionarioModel funcionario);
+        Task<FuncionarioModel> UpdateAsync(FuncionarioModel funcionario);
+        Task<bool> DeleteAsync(long id);
         Task<bool> ExistsAsync(long id);
     }
 }

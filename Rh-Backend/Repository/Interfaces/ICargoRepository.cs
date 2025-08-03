@@ -11,6 +11,7 @@ namespace Rh_Backend.Repository.Interfaces
         Task<CargoModel> UpdateAsync(CargoModel cargo);
         Task<bool> DeleteAsync(long id);
         Task<bool> ExistsAsync(long id);
+        Task<bool> ExistsByNomeAsync(string nome);
 
     }
 }

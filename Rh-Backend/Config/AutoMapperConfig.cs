@@ -10,6 +10,7 @@ namespace Rh_Backend.Config
         {
             // DTO <-> Model dos Cargos
             CreateMap<CargoCreateDTO, CargoModel>().ReverseMap();
+            CreateMap<CargoCreateDTO, CargoReadDTO>().ReverseMap();
             CreateMap<CargoReadDTO, CargoModel>().ReverseMap();
             CreateMap<CargoUpdateDTO, CargoModel>().ReverseMap();
 
@@ -24,7 +25,9 @@ namespace Rh_Backend.Config
             // DTO <-> Model dos Funcionarios
             CreateMap<FuncionarioCreateDTO, FuncionarioModel>().ReverseMap();
             CreateMap<FuncionarioReadDTO, FuncionarioModel>().ReverseMap();
-            CreateMap<FuncionarioUpdateDTO, FuncionarioModel>().ReverseMap();
+            CreateMap<FuncionarioComCargoUpdateDTO, FuncionarioModel>().ReverseMap();
+            CreateMap<FuncionarioComCargoCreateDTO, FuncionarioModel>().ReverseMap();
+            CreateMap<FuncionarioComCargoDTO, FuncionarioComCargoCreateDTO>().ReverseMap();
 
             // DTO <-> Model do Historico de Alteração
             CreateMap<HistoricoAlteracaoCreateDTO, HistoricoAlteracaoModel>().ReverseMap();

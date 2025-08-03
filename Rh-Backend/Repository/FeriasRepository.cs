@@ -44,6 +44,13 @@ namespace Rh_Backend.Repository
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<FeriasModel>> GetByFuncionarioAndStatusAsync(long idFuncionario, string status)
+        {
+            return await _context.Ferias
+                .Where(f => f.IdFuncionario == idFuncionario && f.Status == status)
+                .ToListAsync();
+        }
+
         public async Task<FeriasModel> CreateAsync(FeriasModel ferias)
         {
             _context.Ferias.Add(ferias);

@@ -32,12 +32,38 @@ namespace Rh_Backend.Repository
             return contrato;
         }
 
-        public async Task<ContratoModel> UpdateAsync(ContratoModel contrato)
+        public async Task<ContratoModel> UpdateAsync(long idFuncionario, long idCargoAntigo, long idCargoNovo)
         {
-            _context.Contrato.Update(contrato);
+            var contratoExistente = await _context.Contrato
+                .FirstOrDefaultAsync(c => c.IdFuncionario == idFuncionario && c.IdCargo == idCargoNovo);
+
+            if (contratoExistente != null)
+            {
+                return contratoExistente;
+            }
+
+            var contratoAntigo = await _context.Contrato
+                .FirstOrDefaultAsync(c => c.IdFuncionario == idFuncionario && c.IdCargo == idCargoAntigo);
+
+            if (contratoAntigo == null)
+            {
+                throw new Exception("Contrato antigo não encontrado.");
+            }
+
+            _context.Contrato.Remove(contratoAntigo);
+
+            var novoContrato = new ContratoModel
+            {
+                IdFuncionario = idFuncionario,
+                IdCargo = idCargoNovo
+            };
+
+            await _context.Contrato.AddAsync(novoContrato);
             await _context.SaveChangesAsync();
-            return contrato;
+
+            return novoContrato;
         }
+
 
         public async Task<bool> DeleteAsync(long idCargo, long idFuncionario)
         {

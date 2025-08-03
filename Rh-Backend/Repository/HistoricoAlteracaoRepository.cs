@@ -53,13 +53,6 @@ namespace Rh_Backend.Repository
             return historicoAlteracao;
         }
 
-        public async Task<HistoricoAlteracaoModel> UpdateAsync(HistoricoAlteracaoModel historicoAlteracao)
-        {
-            _context.HistoricoAlteracao.Update(historicoAlteracao);
-            await _context.SaveChangesAsync();
-            return historicoAlteracao;
-        }
-
         public async Task<bool> DeleteAsync(long id)
         {
             var historicoAlteracao = await GetByIdAsync(id);

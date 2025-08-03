@@ -7,7 +7,7 @@ namespace Rh_Backend.Repository.Interfaces
         Task<IEnumerable<ContratoModel>> GetAllAsync();
         Task<ContratoModel?> GetByIdAsync(long idCargo, long idFuncionario);
         Task<ContratoModel> CreateAsync(ContratoModel contrato);
-        Task<ContratoModel> UpdateAsync(ContratoModel contrato);
+        Task<ContratoModel> UpdateAsync(long idFuncionario, long idCargoAntigo, long idCargoNovo);
         Task<bool> DeleteAsync(long idCargo, long idFuncionario);
         Task<bool> ExistsAsync(long idCargo, long idFuncionario);
     }

@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace Rh_Backend.DTO
 {
     public class FuncionarioDetalhesDTO
@@ -13,7 +8,6 @@ namespace Rh_Backend.DTO
         public bool Status { get; set; }
         public List<CargoCreateDTO> Cargos { get; set; } = new List<CargoCreateDTO>();
         public List<FeriasCreateDTO> Ferias { get; set; } = new List<FeriasCreateDTO>();
-
 
     }
 }

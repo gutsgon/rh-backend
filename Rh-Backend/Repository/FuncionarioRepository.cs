@@ -37,9 +37,9 @@ namespace Rh_Backend.Repository
                         }).ToList(),
                         Ferias = f.Ferias.Select(fe => new FeriasCreateDTO
                         {
+                            IdFuncionario = f.Id,
                             DataInicio = fe.DataInicio,
                             DataFim = fe.DataFim,
-                            Status = fe.Status
                         }).ToList(),
 
                     }).FirstAsync();
@@ -75,6 +75,24 @@ namespace Rh_Backend.Repository
         public async Task<FuncionarioModel?> GetByIdAsync(long id)
         {
             return await _context.Funcionarios.FirstAsync(f => f.Id == id);
+        }
+
+        public async Task<IEnumerable<FuncionarioComCargoDTO>> GetFuncionariosWithCargo()
+        {
+            return await _context.Funcionarios
+                .Include(c => c.Contratos)
+                .ThenInclude(ca => ca.Cargo)
+                .Select(f => new FuncionarioComCargoDTO
+                {
+                    Nome = f.Nome,
+                    DataAdmissao = f.DataAdmissao,
+                    Salario = f.Salario,
+                    Status = f.Status,
+                    Cargos = f.Contratos.Select(c => new CargoCreateDTO
+                    {
+                        Nome = c.Cargo.Nome
+                    }).ToList()
+                }).ToListAsync();
         }
 
         public async Task<FuncionarioModel> CreateAsync(FuncionarioModel funcionario)

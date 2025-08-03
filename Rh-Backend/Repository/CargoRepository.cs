@@ -59,5 +59,10 @@ namespace Rh_Backend.Repository
         {
             return await _context.Cargo.AnyAsync(c => c.Id == id);
         }
+
+        public async Task<bool> ExistsByNomeAsync(string nome)
+        {
+            return await _context.Cargo.AnyAsync(c => c.Nome == nome);
+        }
     }
 }

@@ -4,11 +4,13 @@ namespace Rh_Backend.Services.Interfaces
 {
     public interface ICargoService
     {
-        public Task<IEnumerable<CargoReadDTO>> ListarTodosCargos();
-        public Task<CargoReadDTO?> BuscarCargoPorNome(string nome);
-        public Task<CargoReadDTO?> BuscarCargoPorId(long id);
-        public Task<CargoReadDTO> CriarCargo(CargoCreateDTO cargo);
-        public Task<CargoReadDTO> AtualizarCargo(CargoUpdateDTO cargo);
-        public Task<bool> DeletarCargo(long id);
+        Task<IEnumerable<CargoReadDTO>> ListarTodosCargos();
+        Task<CargoReadDTO?> BuscarCargoPorNome(string nome);
+        Task<CargoReadDTO?> BuscarCargoPorId(long id);
+        Task<CargoReadDTO> CriarCargo(CargoCreateDTO cargo);
+        Task<CargoReadDTO> AtualizarCargo(CargoUpdateDTO cargo);
+        Task<bool> ExistsPorNome(string nome);
+        Task<bool> Exists(long id);
+        Task<bool> DeletarCargo(long id);
     }
 }
