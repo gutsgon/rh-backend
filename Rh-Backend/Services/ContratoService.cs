@@ -1,6 +1,7 @@
 
 using AutoMapper;
 using Rh_Backend.DTO;
+using Rh_Backend.Exceptions;
 using Rh_Backend.Models;
 using Rh_Backend.Repository.Interfaces;
 using Rh_Backend.Services.Interfaces;
@@ -21,13 +22,13 @@ namespace Rh_Backend.Services
         {
             try
             {
-                var contratos = await _contratoRepository.GetAllAsync() ?? throw new Exception("Nenhum contrato encontrado.");
+                var contratos = await _contratoRepository.GetAllAsync() ?? throw new NotFoundException("Nenhum contrato encontrado.");
                 return _mapper.Map<IEnumerable<ContratoDTO>>(contratos);
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao listar contratos");
+                throw;
             }
         }
 
@@ -35,14 +36,14 @@ namespace Rh_Backend.Services
         {
             try
             {
-                if (idCargo <= 0 | idFuncionario <= 0) throw new Exception("ID do contrato deve ser maior que zero.");
-                var contrato = await _contratoRepository.GetByIdAsync(idCargo, idFuncionario) ?? throw new Exception("Contrato não encontrado.");
+                if (idCargo <= 0 | idFuncionario <= 0) throw new BadRequestException("ID do contrato deve ser maior que zero.");
+                var contrato = await _contratoRepository.GetByIdAsync(idCargo, idFuncionario) ?? throw new NotFoundException("Contrato não encontrado.");
                 return _mapper.Map<ContratoDTO>(contrato);
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao buscar contrato");
+                throw;
             }
         }
 
@@ -53,14 +54,14 @@ namespace Rh_Backend.Services
         {
             try
             {
-                if (idCargo <= 0 | idFuncionario <= 0) throw new Exception("ID inválido.");
-                var contrato = await _contratoRepository.GetByIdAsync(idCargo, idFuncionario) ?? throw new Exception("Contrato não encontrado.");
+                if (idCargo <= 0 | idFuncionario <= 0) throw new BadRequestException("ID inválido.");
+                var contrato = await _contratoRepository.GetByIdAsync(idCargo, idFuncionario) ?? throw new NotFoundException("Contrato não encontrado.");
                 return true;
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao buscar contrato");
+                throw;
             }
         }
 
@@ -68,8 +69,8 @@ namespace Rh_Backend.Services
         {
             try
             {
-                if (contrato == null) throw new Exception("Contrato não pode ser nulo.");
-                if (contrato.IdCargo <= 0 || contrato.IdFuncionario <= 0) throw new Exception("IDs do cargo e funcionário devem ser maiores que zero.");
+                if (contrato == null) throw new BadRequestException("Contrato não pode ser nulo.");
+                if (contrato.IdCargo <= 0 || contrato.IdFuncionario <= 0) throw new BadRequestException("IDs do cargo e funcionário devem ser maiores que zero.");
                 var contratoModel = _mapper.Map<ContratoModel>(contrato);
                 var createdContrato = await _contratoRepository.CreateAsync(contratoModel) ?? throw new Exception("Erro ao criar contrato.");
                 return _mapper.Map<ContratoDTO>(createdContrato);
@@ -77,7 +78,7 @@ namespace Rh_Backend.Services
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao criar contrato");
+                throw;
             }
         }
 
@@ -85,14 +86,14 @@ namespace Rh_Backend.Services
         {
             try
             {
-                if (idFuncionario <= 0 || idCargoAntigo <= 0 || idCargoNovo <= 0) throw new Exception("IDs devem ser maiores que zero.");
+                if (idFuncionario <= 0 || idCargoAntigo <= 0 || idCargoNovo <= 0) throw new BadRequestException("IDs devem ser maiores que zero.");
                 var contrato = await _contratoRepository.UpdateAsync(idFuncionario, idCargoAntigo, idCargoNovo) ?? throw new Exception("Erro ao atualizar contrato.");
                 return _mapper.Map<ContratoDTO>(contrato);
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao atualizar contrato");
+                throw;
             }
         }
 
@@ -100,7 +101,7 @@ namespace Rh_Backend.Services
         {
             try
             {
-                if (idCargo <= 0 | idFuncionario <= 0) throw new Exception("ID do contrato deve ser maior que zero.");
+                if (idCargo <= 0 | idFuncionario <= 0) throw new BadRequestException("ID do contrato deve ser maior que zero.");
                 var deleted = await _contratoRepository.DeleteAsync(idCargo, idFuncionario);
                 if (!deleted) throw new Exception("Erro ao deletar contrato.");
                 return true;
@@ -108,7 +109,7 @@ namespace Rh_Backend.Services
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao deletar contrato");
+                throw;
             }
         }
     }

@@ -1,5 +1,7 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Rh_Backend.DTO;
+using Rh_Backend.Exceptions;
 using Rh_Backend.Models;
 using Rh_Backend.Repository.Interfaces;
 using Rh_Backend.Services.Interfaces;
@@ -9,54 +11,50 @@ namespace Rh_Backend.Services
     public class FuncionarioService : IFuncionarioService
     {
         private readonly IFuncionarioRepository _repository;
-
-        /// <summary>
-        /// MODIFICAR TODOS OS REPOSITORYS POR INTERFACES DOS SERVIÇOS
-        /// </summary>
-        private readonly ICargoService _cargoService;
-        private readonly IContratoService _contratoService;
-        private readonly IFeriasService _feriasService;
-        private readonly IHistoricoAlteracaoService _historicoAlteracaoService;
+        private readonly ICargoRepository _cargoRepository;
+        private readonly IContratoRepository _contratoRepository;
+        private readonly IFeriasRepository _feriasRepository;
+        private readonly IHistoricoAlteracaoRepository _historicoAlteracaoRepository;
         private readonly IMapper _mapper;
-        public FuncionarioService(IFuncionarioRepository repository, ICargoService cargoService, IContratoService contratoService, IFeriasService feriasService, IHistoricoAlteracaoService historicoAlteracaoService, IMapper mapper)
+        public FuncionarioService(IFuncionarioRepository repository, ICargoRepository cargoRepository, IContratoRepository contratoRepository, IFeriasRepository feriasRepository, IHistoricoAlteracaoRepository historicoAlteracaoRepository, IMapper mapper)
         {
             _mapper = mapper;
             _repository = repository;
-            _cargoService = cargoService;
-            _contratoService = contratoService;
-            _feriasService = feriasService;
-            _historicoAlteracaoService = historicoAlteracaoService;
+            _cargoRepository = cargoRepository;
+            _contratoRepository = contratoRepository;
+            _feriasRepository = feriasRepository;
+            _historicoAlteracaoRepository = historicoAlteracaoRepository;
         }
 
         public async Task<IEnumerable<FuncionarioReadDTO>> ListarTodosFuncionarios()
         {
             try
             {
-                var funcionarios = await _repository.GetAllAsync() ?? throw new Exception("Nenhum funcionário encontrado");
+                var funcionarios = await _repository.GetAllAsync() ?? throw new NotFoundException("Nenhum funcionário encontrado");
                 var funcionariosDTO = _mapper.Map<IEnumerable<FuncionarioReadDTO>>(funcionarios);
                 return funcionariosDTO;
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao listar funcionários");
+                throw;
             }
         }
 
-        public async Task<IEnumerable<FuncionarioReadDTO>> BuscarFuncionarios(DateTime? dataAdmissao, string nome, decimal salario, bool status)
+        public async Task<IEnumerable<FuncionarioReadDTO>> BuscarFuncionarios(FuncionarioCreateDTO funcionario)
         {
             try
             {
-                if (dataAdmissao > DateTime.Now) throw new Exception("Data inválida");
-                if (nome.Any(char.IsDigit)) throw new Exception("Nome inválido");
-                if (salario < 0) throw new Exception("Salário inválido");
-                var funcionarios = await _repository.SearchAsync(dataAdmissao, nome, salario, status);
+                if (funcionario.DataAdmissao > DateTime.Now) throw new BadRequestException("Data inválida");
+                if (funcionario.Nome.Any(char.IsDigit)) throw new BadRequestException("Nome inválido");
+                if (funcionario.Salario < 0) throw new BadRequestException("Salário inválido");
+                var funcionarios = await _repository.SearchAsync(funcionario.DataAdmissao, funcionario.Nome, funcionario.Salario, funcionario.Status);
                 return _mapper.Map<IEnumerable<FuncionarioReadDTO>>(funcionarios);
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao buscar funcionários");
+                throw;
             }
         }
 
@@ -64,14 +62,14 @@ namespace Rh_Backend.Services
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(cargo)) throw new Exception("Cargo inválido");
+                if (string.IsNullOrWhiteSpace(cargo)) throw new BadRequestException("Cargo inválido");
                 var funcionarios = await _repository.GetByCargoAsync(cargo);
                 return _mapper.Map<IEnumerable<FuncionarioReadDTO>>(funcionarios);
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao buscar funcionários por cargo");
+                throw;
             }
         }
 
@@ -80,14 +78,14 @@ namespace Rh_Backend.Services
             try
             {
                 if (id <= 0) throw new Exception("ID inválido");
-                if (!await _repository.ExistsAsync(id)) throw new Exception("Funcionário não existe");
-                var funcionario = await _repository.GetWithDetailsAsync(id) ?? throw new Exception("Funcionário não encontrado");
+                if (!await _repository.ExistsAsync(id)) throw new BadRequestException("Funcionário não existe");
+                var funcionario = await _repository.GetWithDetailsAsync(id) ?? throw new NotFoundException("Funcionário não encontrado");
                 return _mapper.Map<FuncionarioDetalhesDTO>(funcionario);
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao buscar detalhes do funcionário");
+                throw;
             }
         }
 
@@ -96,14 +94,14 @@ namespace Rh_Backend.Services
             try
             {
                 if (id <= 0) throw new Exception("ID inválido");
-                if (!await _repository.ExistsAsync(id)) throw new Exception("Funcionário não existe");
+                if (!await _repository.ExistsAsync(id)) throw new BadRequestException("Funcionário não existe");
                 var funcionario = await _repository.GetByIdAsync(id);
                 return _mapper.Map<FuncionarioReadDTO>(funcionario);
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao buscar funcionário");
+                throw;
             }
         }
 
@@ -111,12 +109,12 @@ namespace Rh_Backend.Services
         {
             try
             {
-                return await _repository.GetFuncionariosWithCargo() ?? throw new Exception("Nenhum funcionário encontrado");
+                return await _repository.GetFuncionariosWithCargo() ?? throw new NotFoundException("Nenhum funcionário encontrado");
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao buscar funcionários com cargo");
+                throw;
             }
         }
 
@@ -124,16 +122,16 @@ namespace Rh_Backend.Services
         {
             try
             {
-                if (funcionario == null) throw new Exception("Funcionário não pode ser nulo");
-                if (string.IsNullOrWhiteSpace(funcionario.Nome)) throw new Exception("Nome inválido");
-                if (funcionario.Salario < 0) throw new Exception("Salário inválido");
-                if (funcionario.DataAdmissao > DateTime.Now) throw new Exception("Data de admissão inválida");
-                if (funcionario.Cargo == null || funcionario.Cargo == new CargoCreateDTO()) throw new Exception("Cargo inválido");
-                if (!await _cargoService.ExistsPorNome(funcionario.Cargo.Nome)) throw new Exception("Cargo não existe");
+                if (funcionario == null) throw new BadRequestException("Funcionário não pode ser nulo");
+                if (string.IsNullOrWhiteSpace(funcionario.Nome)) throw new BadRequestException("Nome inválido");
+                if (funcionario.Salario < 0) throw new BadRequestException("Salário inválido");
+                if (funcionario.DataAdmissao > DateTime.Now) throw new BadRequestException("Data de admissão inválida");
+                if (funcionario.Cargo == null || funcionario.Cargo == new CargoCreateDTO()) throw new BadRequestException("Cargo inválido");
+                if (!await _cargoRepository.ExistsByNomeAsync(funcionario.Cargo.Nome)) throw new BadRequestException("Cargo não existe");
 
-                var cargoModel = _cargoService.BuscarCargoPorNome(funcionario.Cargo.Nome);
+                var cargoModel = _cargoRepository.GetByNomeAsync(funcionario.Cargo.Nome);
                 var funcionarioModel = _mapper.Map<FuncionarioModel>(funcionario);
-                var novoFuncionario = await _repository.CreateAsync(funcionarioModel) ?? throw new Exception("Erro ao criar funcionário");
+                var novoFuncionario = await _repository.CreateAsync(funcionarioModel) ?? throw new BadRequestException("Erro ao criar funcionário");
                 var funcionarioComCargo = new FuncionarioComCargoReadDTO()
                 {
                     Id = novoFuncionario.Id,
@@ -149,14 +147,15 @@ namespace Rh_Backend.Services
                     IdFuncionario = novoFuncionario.Id,
                     IdCargo = cargoModel.Id
                 };
+                var contratoModel = _mapper.Map<ContratoModel>(contrato);
 
-                var novoContrato = await _contratoService.CriarContrato(contrato) ?? throw new Exception("Erro ao criar contrato");
+                var novoContrato = await _contratoRepository.CreateAsync(contratoModel) ?? throw new Exception("Erro ao criar contrato");
                 return funcionarioComCargo;
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao criar funcionário");
+                throw;
             }
         }
 
@@ -164,7 +163,7 @@ namespace Rh_Backend.Services
         {
             try
             {
-                var funcionarios = await _repository.GetAllAsync() ?? throw new Exception("Nenhum funcionário encontrado");
+                var funcionarios = await _repository.GetAllAsync() ?? throw new NotFoundException("Nenhum funcionário encontrado");
                 if (!funcionarios.Any()) throw new Exception("Nenhum funcionário cadastrado");
 
                 var salarioMedio = funcionarios.Average(f => f.Salario);
@@ -173,7 +172,7 @@ namespace Rh_Backend.Services
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao calcular média salarial");
+                throw;
             }
         }
 
@@ -181,20 +180,20 @@ namespace Rh_Backend.Services
         {
             try
             {
-                if (!await _repository.ExistsAsync(funcionario.Id)) throw new Exception("Funcionário não existe");
-                if (string.IsNullOrWhiteSpace(funcionario.Nome)) throw new Exception("Nome inválido");
-                if (funcionario.Salario < 0) throw new Exception("Salário inválido");
-                if (funcionario.DataAdmissao > DateTime.Now) throw new Exception("Data de admissão inválida");
-                if (funcionario.CargoAntigo == null || funcionario.CargoAntigo == new CargoCreateDTO()) throw new Exception("Cargo inválido");
-                if (!await _cargoService.ExistsPorNome(funcionario.CargoAntigo.Nome)) throw new Exception("Cargo não existe");
-                if (funcionario.CargoNovo == null || funcionario.CargoNovo == new CargoCreateDTO()) throw new Exception("Novo cargo inválido");
-                if (!await _cargoService.ExistsPorNome(funcionario.CargoNovo.Nome)) throw new Exception("Novo cargo não existe");
+                if (!await _repository.ExistsAsync(funcionario.Id)) throw new NotFoundException("Funcionário não existe");
+                if (string.IsNullOrWhiteSpace(funcionario.Nome)) throw new BadRequestException("Nome inválido");
+                if (funcionario.Salario < 0) throw new BadRequestException("Salário inválido");
+                if (funcionario.DataAdmissao > DateTime.Now) throw new BadRequestException("Data de admissão inválida");
+                if (funcionario.CargoAntigo == null || funcionario.CargoAntigo == new CargoCreateDTO()) throw new NotFoundException("Cargo inválido");
+                if (!await _cargoRepository.ExistsByNomeAsync(funcionario.CargoAntigo.Nome)) throw new NotFoundException("Cargo não existe");
+                if (funcionario.CargoNovo == null || funcionario.CargoNovo == new CargoCreateDTO()) throw new NotFoundException("Novo cargo inválido");
+                if (!await _cargoRepository.ExistsByNomeAsync(funcionario.CargoNovo.Nome)) throw new NotFoundException("Novo cargo não existe");
 
 
-                var funcionarioModel = await _repository.GetByIdAsync(funcionario.Id) ?? throw new Exception("Funcionário não encontrado");
-                var feriasModel = await _feriasService.BuscarFeriasPorFuncionarioEStatus(funcionario.Id, "Em Andamento");
-                var cargoAntigoModel = await _cargoService.BuscarCargoPorNome(funcionario.CargoAntigo.Nome) ?? throw new Exception("Cargo não encontrado");
-                var cargoNovoModel = await _cargoService.BuscarCargoPorNome(funcionario.CargoNovo.Nome) ?? throw new Exception("Cargo não encontrado");
+                var funcionarioModel = await _repository.GetByIdAsync(funcionario.Id) ?? throw new NotFoundException("Funcionário não encontrado");
+                var feriasModel = await _feriasRepository.GetByFuncionarioAndStatusAsync(funcionario.Id, "Em Andamento");
+                var cargoAntigoModel = await _cargoRepository.GetByNomeAsync(funcionario.CargoAntigo.Nome) ?? throw new NotFoundException("Cargo não encontrado");
+                var cargoNovoModel = await _cargoRepository.GetByNomeAsync(funcionario.CargoNovo.Nome) ?? throw new NotFoundException("Cargo não encontrado");
 
                 if (funcionarioModel.Nome != funcionario.Nome)
                 {
@@ -209,7 +208,7 @@ namespace Rh_Backend.Services
                         ValorNovo = funcionario.Nome
 
                     };
-                    await _historicoAlteracaoService.CriarHistorico(_mapper.Map<HistoricoAlteracaoCreateDTO>(historico));
+                    await _historicoAlteracaoRepository.CreateAsync(_mapper.Map<HistoricoAlteracaoModel>(historico));
                     funcionarioModel.Nome = funcionario.Nome;
                 }
 
@@ -225,7 +224,7 @@ namespace Rh_Backend.Services
                         ValorAntigo = funcionarioModel.Salario.ToString(),
                         ValorNovo = funcionario.Salario.ToString()
                     };
-                    await _historicoAlteracaoService.CriarHistorico(_mapper.Map<HistoricoAlteracaoCreateDTO>(historico));
+                    await _historicoAlteracaoRepository.CreateAsync(_mapper.Map<HistoricoAlteracaoModel>(historico));
                     funcionarioModel.Salario = funcionario.Salario;
                 }
 
@@ -241,7 +240,7 @@ namespace Rh_Backend.Services
                         ValorAntigo = funcionarioModel.DataAdmissao.ToString("yyyy-MM-dd"),
                         ValorNovo = funcionario.DataAdmissao.ToString("yyyy-MM-dd")
                     };
-                    await _historicoAlteracaoService.CriarHistorico(_mapper.Map<HistoricoAlteracaoCreateDTO>(historico));
+                    await _historicoAlteracaoRepository.CreateAsync(_mapper.Map<HistoricoAlteracaoModel>(historico));
                     funcionarioModel.DataAdmissao = funcionario.DataAdmissao;
                 }
 
@@ -257,7 +256,7 @@ namespace Rh_Backend.Services
                         ValorAntigo = funcionarioModel.Status.ToString(),
                         ValorNovo = funcionario.Status.ToString()
                     };
-                    await _historicoAlteracaoService.CriarHistorico(_mapper.Map<HistoricoAlteracaoCreateDTO>(historico));
+                    await _historicoAlteracaoRepository.CreateAsync(_mapper.Map<HistoricoAlteracaoModel>(historico));
                     funcionarioModel.Status = funcionario.Status;
                 }
 
@@ -273,8 +272,8 @@ namespace Rh_Backend.Services
                         ValorAntigo = funcionario.CargoAntigo.Nome,
                         ValorNovo = funcionario.CargoNovo.Nome
                     };
-                    await _historicoAlteracaoService.CriarHistorico(_mapper.Map<HistoricoAlteracaoCreateDTO>(historico));
-                    await _contratoService.AtualizarContrato(funcionario.Id, cargoAntigoModel.Id, cargoNovoModel.Id);
+                    await _historicoAlteracaoRepository.CreateAsync(_mapper.Map<HistoricoAlteracaoModel>(historico));
+                    await _contratoRepository.UpdateAsync(funcionario.Id, cargoAntigoModel.Id, cargoNovoModel.Id);
                 }
 
                 await _repository.UpdateAsync(funcionarioModel);
@@ -291,13 +290,14 @@ namespace Rh_Backend.Services
                         Nome = funcionario.CargoNovo.Nome
                     }
                 };
+                await _repository.UpdateAsync(funcionarioModel);
 
                 return funcionarioComCargo;
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao atualizar funcionário");
+                throw;
             }
         }
 
@@ -306,14 +306,14 @@ namespace Rh_Backend.Services
             try
             {
                 if (id <= 0) throw new Exception("ID inválido");
-                if (!await _repository.ExistsAsync(id)) throw new Exception("Funcionário não existe");
+                if (!await _repository.ExistsAsync(id)) throw new NotFoundException("Funcionário não existe");
                 await _repository.DeleteAsync(id);
                 return true;
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao deletar funcionário");
+                throw;
             }
         }
         
@@ -321,12 +321,13 @@ namespace Rh_Backend.Services
         {
             try
             {
+                if (id <= 0) throw new BadRequestException("Id deve ser maior que 0");
                 return await _repository.ExistsAsync(id);
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro, funcionário não existe");
+                throw;
             }
         }
         

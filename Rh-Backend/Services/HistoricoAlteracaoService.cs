@@ -1,5 +1,6 @@
 using AutoMapper;
 using Rh_Backend.DTO;
+using Rh_Backend.Exceptions;
 using Rh_Backend.Models;
 using Rh_Backend.Repository.Interfaces;
 using Rh_Backend.Services.Interfaces;
@@ -9,30 +10,30 @@ namespace Rh_Backend.Services
     public class HistoricoAlteracaoService : IHistoricoAlteracaoService
     {
         private readonly IHistoricoAlteracaoRepository _historicoRepository;
-        private readonly IFuncionarioService _funcionarioService;
-        private readonly ICargoService _cargoService;
-        private readonly IFeriasService _feriasService;
+        private readonly IFuncionarioRepository _funcionarioRepository;
+        private readonly ICargoRepository _cargoRepository;
+        private readonly IFeriasRepository _feriasRepository;
         private readonly IMapper _mapper;
-        public HistoricoAlteracaoService(IHistoricoAlteracaoRepository historicoRepository, IFuncionarioService funcionarioService, ICargoService cargoService, IFeriasService feriasService, IMapper mapper)
+        public HistoricoAlteracaoService(IHistoricoAlteracaoRepository historicoRepository, IFuncionarioRepository funcionarioRepository, ICargoRepository cargoRepository, IFeriasRepository feriasRepository, IMapper mapper)
         {
             _historicoRepository = historicoRepository;
             _mapper = mapper;
-            _funcionarioService = funcionarioService;
-            _cargoService = cargoService;
-            _feriasService = feriasService;
+            _funcionarioRepository = funcionarioRepository;
+            _cargoRepository = cargoRepository;
+            _feriasRepository = feriasRepository;
         }
 
         public async Task<IEnumerable<HistoricoAlteracaoCreateDTO>> ListarTodosHistoricos()
         {
             try
             {
-                var historicos = await _historicoRepository.GetAllAsync() ?? throw new Exception("Nenhum histórico encontrado.");
+                var historicos = await _historicoRepository.GetAllAsync() ?? throw new NotFoundException("Nenhum histórico encontrado.");
                 return _mapper.Map<IEnumerable<HistoricoAlteracaoCreateDTO>>(historicos);
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao listar todos os históricos de alteração.", ex);
+                throw;
             }
         }
 
@@ -40,14 +41,14 @@ namespace Rh_Backend.Services
         {
             try
             {
-                if (id <= 0) throw new Exception("ID inválido.");
-                var historico = await _historicoRepository.GetByIdAsync(id) ?? throw new Exception("Histórico não encontrado.");
+                if (id <= 0) throw new BadRequestException("ID inválido.");
+                var historico = await _historicoRepository.GetByIdAsync(id) ?? throw new NotFoundException("Histórico não encontrado.");
                 return _mapper.Map<HistoricoAlteracaoReadDTO>(historico);
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception($"Erro ao buscar histórico com ID {id}.", ex);
+                throw;
             }
         }
 
@@ -55,14 +56,14 @@ namespace Rh_Backend.Services
         {
             try
             {
-                if (idFuncionario <= 0 | idCargo <= 0 | idFerias <= 0) throw new Exception("ID(s) inválido(s).");
+                if (idFuncionario <= 0 | idCargo <= 0 | idFerias <= 0) throw new BadRequestException("ID(s) inválido(s).");
                 var historicos = await _historicoRepository.SearchByIdAsync(idFuncionario, idCargo, idFerias);
                 return _mapper.Map<IEnumerable<HistoricoAlteracaoReadDTO>>(historicos);
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao buscar históricos de alteração.", ex);
+                throw;
             }
         }
 
@@ -70,15 +71,15 @@ namespace Rh_Backend.Services
         {
             try
             {
-                if (dataAlteracao == default) throw new Exception("Data inválida.");
-                if (dataAlteracao > DateTime.Now) throw new Exception("Data de alteração inválida.");
+                if (dataAlteracao == default) throw new BadRequestException("Data inválida.");
+                if (dataAlteracao > DateTime.Now) throw new BadRequestException("Data de alteração inválida.");
                 var historicos = await _historicoRepository.GetByDataAlteracaoAsync(dataAlteracao);
                 return _mapper.Map<IEnumerable<HistoricoAlteracaoReadDTO>>(historicos);
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao buscar histórico por data.", ex);
+                throw;
             }
         }
 
@@ -87,12 +88,12 @@ namespace Rh_Backend.Services
             try
             {
                 if (historico == null) throw new Exception("Histórico não pode ser nulo.");
-                if (historico.IdFuncionario <= 0 || historico.IdCargo <= 0 || historico.IdFerias <= 0) throw new Exception("IDs inválidos no histórico.");
-                if (historico.DataAlteracao > DateTime.Now | historico.CampoAlterado == null | historico.ValorAntigo == null | historico.ValorNovo == null) throw new Exception("Campo(s) inválido(s).");
+                if (historico.IdFuncionario <= 0 || historico.IdCargo <= 0 || historico.IdFerias <= 0) throw new BadRequestException("IDs inválidos no histórico.");
+                if (historico.DataAlteracao > DateTime.Now | historico.CampoAlterado == null | historico.ValorAntigo == null | historico.ValorNovo == null) throw new BadRequestException("Campo(s) inválido(s).");
                 if (historico.ValorAntigo == historico.ValorNovo) throw new Exception("Valor antigo e novo não podem ser iguais.");
-                var funcionario = await _funcionarioService.BuscarFuncionarioPorId(historico.IdFuncionario) ?? throw new Exception("Funcionário não existe.");
-                var cargo = await _cargoService.BuscarCargoPorId(historico.IdCargo) ?? throw new Exception("Cargo não existe.");
-                var ferias = await _feriasService.BuscarFeriasPorId(historico.IdFerias) ?? throw new Exception("Férias não existem.");
+                var funcionario = await _funcionarioRepository.GetByIdAsync(historico.IdFuncionario) ?? throw new NotFoundException("Funcionário não existe.");
+                var cargo = await _cargoRepository.GetByIdAsync(historico.IdCargo) ?? throw new NotFoundException("Cargo não existe.");
+                var ferias = await _feriasRepository.GetByIdAsync(historico.IdFerias) ?? throw new NotFoundException("Férias não existem.");
                 var historicoModel = _mapper.Map<HistoricoAlteracaoModel>(historico);
                 var novoHistorico = await _historicoRepository.CreateAsync(historicoModel);
                 return _mapper.Map<HistoricoAlteracaoReadDTO>(novoHistorico);
@@ -100,22 +101,38 @@ namespace Rh_Backend.Services
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao criar histórico de alteração.", ex);
+                throw;
             }
         }
-        
+
         public async Task<bool> DeletarHistorico(long id)
         {
             try
             {
                 if (id <= 0) throw new Exception("ID inválido.");
-                var historico = await _historicoRepository.GetByIdAsync(id) ?? throw new Exception("Histórico não encontrado.");
+                var historico = await _historicoRepository.GetByIdAsync(id) ?? throw new NotFoundException("Histórico não encontrado.");
                 return await _historicoRepository.DeleteAsync(id);
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception($"Erro ao deletar histórico com ID {id}.", ex);
+                throw;
+            }
+        }
+
+        public async Task<bool> Exists(long id)
+        {
+            try
+            {
+                if (id <= 0) throw new BadRequestException("ID do historico deve ser maior que zero.");
+                var historico = await _historicoRepository.GetByIdAsync(id) ?? throw new NotFoundException("Historico não encontrado.");
+                if (historico == null) return false;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.Write(ex.Message);
+                throw;
             }
         }
 

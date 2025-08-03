@@ -10,5 +10,6 @@ namespace Rh_Backend.Services.Interfaces
         public Task<IEnumerable<HistoricoAlteracaoReadDTO>> BuscarHistoricoPorData(DateTime dataAlteracao);
         public Task<HistoricoAlteracaoReadDTO> CriarHistorico(HistoricoAlteracaoCreateDTO historicoAlteracao);
         public Task<bool> DeletarHistorico(long id);
+        public Task<bool> Exists(long id);
     }
 }

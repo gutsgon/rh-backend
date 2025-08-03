@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Rh_Backend.Config;
 using Rh_Backend.Models;
 
 namespace Rh_Backend.Data
@@ -17,6 +18,11 @@ namespace Rh_Backend.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Registro automático de todas as configurações
+            modelBuilder.ApplyConfiguration(new CargoConfig());
+            modelBuilder.ApplyConfiguration(new ContratoConfig());
+            modelBuilder.ApplyConfiguration(new FeriasConfig());
+            modelBuilder.ApplyConfiguration(new FuncionarioConfig());
+            modelBuilder.ApplyConfiguration(new HistoricoAlteracaoConfig());
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
         }
     }

@@ -1,5 +1,7 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Rh_Backend.DTO;
+using Rh_Backend.Exceptions;
 using Rh_Backend.Models;
 using Rh_Backend.Repository.Interfaces;
 using Rh_Backend.Services.Interfaces;
@@ -10,27 +12,29 @@ namespace Rh_Backend.Services
     {
         private readonly ICargoRepository _cargoRepository;
         private readonly IMapper _mapper;
+        private readonly ILogger<CargoService> _logger;
 
-        public CargoService(ICargoRepository cargoRepository, IMapper mapper)
+        public CargoService(ICargoRepository cargoRepository, IMapper mapper, ILogger<CargoService> logger)
         {
             _cargoRepository = cargoRepository;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task<bool> ExistsPorNome(string nome)
         {
             try
             {
-                if (string.IsNullOrEmpty(nome)) throw new Exception("Nome do cargo não pode ser nulo ou vazio.");
-                var cargo = await _cargoRepository.GetByNomeAsync(nome) ?? throw new Exception("Cargo não encontrado.");
-                if (cargo == null) return false;
+                if (string.IsNullOrEmpty(nome)) throw new BadRequestException("Nome do cargo não pode ser nulo ou vazio.");
+                if (nome.Any(char.IsDigit)) throw new BadRequestException("Apenas letras são permitidas");
+                var cargo = await _cargoRepository.ExistsByNomeAsync(nome);
                 return true;
 
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao buscar cargo");
+                throw;
             }
         }
 
@@ -38,15 +42,15 @@ namespace Rh_Backend.Services
         {
             try
             {
-                if (id <= 0) throw new Exception("ID do cargo deve ser maior que zero.");
-                var cargo = await _cargoRepository.GetByIdAsync(id) ?? throw new Exception("Cargo não encontrado.");
+                if (id <= 0) throw new BadRequestException("ID do cargo deve ser maior que zero.");
+                var cargo = await _cargoRepository.GetByIdAsync(id) ?? throw new NotFoundException("Cargo não encontrado.");
                 if (cargo == null) return false;
                 return true;
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao verificar existência do cargo");
+                throw;
             }
         }
 
@@ -54,14 +58,15 @@ namespace Rh_Backend.Services
         {
             try
             {
-                if (string.IsNullOrEmpty(nome)) throw new Exception("Nome do cargo não pode ser nulo ou vazio.");
-                var cargo = await _cargoRepository.GetByNomeAsync(nome) ?? throw new Exception("Cargo não encontrado.");
+                if (string.IsNullOrEmpty(nome)) throw new BadRequestException("Nome do cargo não pode ser nulo ou vazio.");
+                if (nome.Any(char.IsDigit)) throw new BadRequestException("Apenas letras são permitidas");
+                var cargo = await _cargoRepository.GetByNomeAsync(nome) ?? throw new NotFoundException("Cargo não encontrado.");
                 return _mapper.Map<CargoReadDTO>(cargo);
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao buscar cargo");
+                throw;
             }
         }
 
@@ -69,14 +74,14 @@ namespace Rh_Backend.Services
         {
             try
             {
-                if (id <= 0) throw new Exception("ID do cargo deve ser maior que zero.");
-                var cargo = await _cargoRepository.GetByIdAsync(id) ?? throw new Exception("Cargo não encontrado.");
+                if (id <= 0) throw new BadRequestException("ID do cargo deve ser maior que zero.");
+                var cargo = await _cargoRepository.GetByIdAsync(id) ?? throw new NotFoundException("Cargo não encontrado.");
                 return _mapper.Map<CargoReadDTO>(cargo);
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao buscar cargo");
+                throw;
             }
         }
 
@@ -84,13 +89,13 @@ namespace Rh_Backend.Services
         {
             try
             {
-                var cargos = await _cargoRepository.GetAllAsync() ?? throw new Exception("Nenhum cargo encontrado.");
+                var cargos = await _cargoRepository.GetAllAsync() ?? throw new NotFoundException("Nenhum cargo encontrado.");
                 return _mapper.Map<IEnumerable<CargoReadDTO>>(cargos);
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao listar cargos");
+                throw;
             }
         }
 
@@ -98,16 +103,18 @@ namespace Rh_Backend.Services
         {
             try
             {
-                if (cargo == null) throw new Exception("Dados do cargo não podem ser nulos.");
-                if (string.IsNullOrEmpty(cargo.Nome)) throw new Exception("Nome do cargo não pode ser nulo ou vazio.");
-                if (cargo.Nome.Length > 50) throw new Exception("Nome do cargo não pode ter mais de 50 caracteres.");
-                if (await ExistsPorNome(cargo.Nome)) throw new Exception("Cargo com este nome já existe.");
-                return _mapper.Map<CargoReadDTO>(cargo);
+                if (cargo == null) throw new BadRequestException("Dados do cargo não podem ser nulos.");
+                if (string.IsNullOrEmpty(cargo.Nome)) throw new BadRequestException("Nome do cargo não pode ser nulo ou vazio.");
+                if (cargo.Nome.Length > 50) throw new BadRequestException("Nome do cargo não pode ter mais de 50 caracteres.");
+                if (await ExistsPorNome(cargo.Nome)) throw new BadRequestException("Cargo com este nome já existe.");
+                var teste = _mapper.Map<CargoModel>(cargo);
+                var cargoModel = await _cargoRepository.CreateAsync(_mapper.Map<CargoModel>(cargo));
+                return _mapper.Map<CargoReadDTO>(cargoModel);
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao criar cargo");
+                throw;
             }
         }
 
@@ -115,19 +122,22 @@ namespace Rh_Backend.Services
         {
             try
             {
-                if (cargo.Id <= 0) throw new Exception("IDs devem ser maiores que zero.");
-                if (string.IsNullOrEmpty(cargo.Nome)) throw new Exception("Nome do cargo não pode ser nulo ou vazio.");
-                if (cargo.Nome.Length > 50) throw new Exception("Nome do cargo não pode ter mais de 50 caracteres.");
-                if (!await Exists(cargo.Id)) throw new Exception("Cargo não encontrado.");
-                if (await ExistsPorNome(cargo.Nome)) throw new Exception("Cargo com este nome já existe.");
+                if (cargo.Id <= 0) throw new BadRequestException("IDs devem ser maiores que zero.");
+                if (string.IsNullOrEmpty(cargo.Nome)) throw new BadRequestException("Nome do cargo não pode ser nulo ou vazio.");
+                if (cargo.Nome.Length > 50) throw new BadRequestException("Nome do cargo não pode ter mais de 50 caracteres.");
+                if (!await Exists(cargo.Id)) throw new NotFoundException("Cargo não encontrado.");
                 var cargoModel = _mapper.Map<CargoModel>(cargo);
+                _logger.LogInformation(cargoModel.Nome);
                 var cargoNovo = await _cargoRepository.UpdateAsync(cargoModel) ?? throw new Exception("Erro ao atualizar cargo.");
+                if (cargoNovo == null) return new CargoReadDTO();
+                _logger.LogInformation(cargoNovo.Nome);
                 return _mapper.Map<CargoReadDTO>(cargoNovo);
             }
             catch (Exception ex)
             {
-                Console.Write(ex.Message);
-                throw new Exception("Erro ao atualizar cargo");
+                _logger.LogError(ex.Message);
+                //Console.Write(ex.Message);
+                throw;
             }
         }
         
@@ -135,14 +145,14 @@ namespace Rh_Backend.Services
         {
             try
             {
-                if (id <= 0) throw new Exception("ID do cargo deve ser maior que zero.");
-                if (!await Exists(id)) throw new Exception("Cargo não encontrado.");
+                if (id <= 0) throw new BadRequestException("ID do cargo deve ser maior que zero.");
+                if (!await Exists(id)) throw new NotFoundException("Cargo não encontrado.");
                 return await _cargoRepository.DeleteAsync(id);
             }
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                throw new Exception("Erro ao deletar cargo");
+                throw;
             }
         }
     }
