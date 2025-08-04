@@ -1,5 +1,4 @@
 using AutoMapper;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Rh_Backend.DTO;
 using Rh_Backend.Exceptions;
 using Rh_Backend.Models;
@@ -126,12 +125,11 @@ namespace Rh_Backend.Services
                 if (string.IsNullOrEmpty(cargo.Nome)) throw new BadRequestException("Nome do cargo não pode ser nulo ou vazio.");
                 if (cargo.Nome.Length > 50) throw new BadRequestException("Nome do cargo não pode ter mais de 50 caracteres.");
                 if (!await Exists(cargo.Id)) throw new NotFoundException("Cargo não encontrado.");
-                var cargoModel = _mapper.Map<CargoModel>(cargo);
-                _logger.LogInformation(cargoModel.Nome);
-                var cargoNovo = await _cargoRepository.UpdateAsync(cargoModel) ?? throw new Exception("Erro ao atualizar cargo.");
-                if (cargoNovo == null) return new CargoReadDTO();
-                _logger.LogInformation(cargoNovo.Nome);
-                return _mapper.Map<CargoReadDTO>(cargoNovo);
+                var cargoModel = await _cargoRepository.GetByIdAsync(cargo.Id);
+                if (cargoModel == null) throw new BadRequestException("Erro ao atualizar o cargo");
+                cargoModel.Nome = cargo.Nome;
+                await _cargoRepository.UpdateAsync(cargoModel);
+                return _mapper.Map<CargoReadDTO>(cargo);
             }
             catch (Exception ex)
             {

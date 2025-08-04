@@ -33,7 +33,7 @@ namespace Rh_Backend.Config
 
             // Cargo
             builder.HasOne(c => c.Cargo)
-                .WithMany()
+                .WithMany(c => c.Contratos)
                 .HasForeignKey(c => c.IdCargo)
                 .HasConstraintName("FK_CARGO")
                 .OnDelete(DeleteBehavior.Restrict);
