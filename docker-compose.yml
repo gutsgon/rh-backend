@@ -5,17 +5,21 @@ services:
     ports:
       - "1433:1433"
     environment:
-      SA_PASSWORD: "123"
+      SA_PASSWORD: "Passw0rd"
       ACCEPT_EULA: "Y"
-      MSSQL_PID: "Express"
+    networks:
+      - rh-network
+  
+  db-init:
+    image: mcr.microsoft.com/mssql-tools
+    depends_on:
+      - db
     volumes:
-      - mssql_data:/var/opt/mssql
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    command: >
-      bash -c "
-        /opt/mssql/bin/sqlservr & 
-        sleep 20 && 
-        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 123 -i /docker-entrypoint-initdb.d/init.sql
+      - ./init.sql:/init.sql
+    entrypoint: >
+      /bin/bash -c "
+        sleep 30;
+        /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P Passw0rd -i /init.sql
       "
     networks:
       - rh-network
@@ -29,14 +33,11 @@ services:
       - "5234:5234"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - DATABASE_URL=Server=db;Database=Rh;User Id=sa;Password=123;TrustServerCertificate=True;
+      - DATABASE_URL=Server=sqlserver;Database=Rh;User Id=sa;Password=Passw0rd;TrustServerCertificate=True;
     depends_on:
       - db
     networks:
       - rh-network
-
-volumes:
-  mssql_data:
 
 networks:
   rh-network:
