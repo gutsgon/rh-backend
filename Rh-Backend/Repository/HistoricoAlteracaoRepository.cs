@@ -63,6 +63,7 @@ namespace Rh_Backend.Repository
 
             _context.HistoricoAlteracao.Remove(historicoAlteracao);
             await _context.SaveChangesAsync();
+            _context.ChangeTracker.Clear();
             return true;
         }
 

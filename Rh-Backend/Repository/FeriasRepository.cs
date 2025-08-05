@@ -75,6 +75,7 @@ namespace Rh_Backend.Repository
 
             _context.Ferias.Remove(ferias);
             await _context.SaveChangesAsync();
+            _context.ChangeTracker.Clear();
             return true;
         }
 

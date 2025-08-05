@@ -74,7 +74,7 @@ namespace Rh_Backend.Repository
 
         public async Task<FuncionarioModel?> GetByIdAsync(long id)
         {
-            return await _context.Funcionarios.FirstAsync(f => f.Id == id);
+            return await _context.Funcionarios.FindAsync(id);
         }
 
         public async Task<IEnumerable<FuncionarioComCargoDTO>> GetFuncionariosWithCargo()
@@ -119,6 +119,7 @@ namespace Rh_Backend.Repository
 
             _context.Funcionarios.Remove(funcionario);
             await _context.SaveChangesAsync();
+            _context.ChangeTracker.Clear();
             return true;
         }
         

@@ -63,6 +63,7 @@ namespace Rh_Backend.Services
             try
             {
                 if (string.IsNullOrWhiteSpace(cargo)) throw new BadRequestException("Cargo inválido");
+                if (!await _cargoRepository.ExistsByNomeAsync(cargo)) throw new NotFoundException("Cargo não existe");
                 var funcionarios = await _repository.GetByCargoAsync(cargo);
                 return _mapper.Map<IEnumerable<FuncionarioReadDTO>>(funcionarios);
             }
@@ -129,7 +130,7 @@ namespace Rh_Backend.Services
                 if (funcionario.Cargo == null || funcionario.Cargo == new CargoCreateDTO()) throw new BadRequestException("Cargo inválido");
                 if (!await _cargoRepository.ExistsByNomeAsync(funcionario.Cargo.Nome)) throw new BadRequestException("Cargo não existe");
 
-                var cargoModel = _cargoRepository.GetByNomeAsync(funcionario.Cargo.Nome);
+                var cargoModel = await _cargoRepository.GetByNomeAsync(funcionario.Cargo.Nome) ?? throw new BadRequestException("Cargo não existe");
                 var funcionarioModel = _mapper.Map<FuncionarioModel>(funcionario);
                 var novoFuncionario = await _repository.CreateAsync(funcionarioModel) ?? throw new BadRequestException("Erro ao criar funcionário");
                 var funcionarioComCargo = new FuncionarioComCargoReadDTO()
@@ -142,12 +143,11 @@ namespace Rh_Backend.Services
                     Cargo = funcionario.Cargo
                 };
 
-                var contrato = new ContratoDTO
+                var contratoModel = new ContratoModel
                 {
-                    IdFuncionario = novoFuncionario.Id,
-                    IdCargo = cargoModel.Id
+                    IdCargo = cargoModel.Id,
+                    IdFuncionario = funcionarioModel.Id
                 };
-                var contratoModel = _mapper.Map<ContratoModel>(contrato);
 
                 var novoContrato = await _contratoRepository.CreateAsync(contratoModel) ?? throw new Exception("Erro ao criar contrato");
                 return funcionarioComCargo;
@@ -192,6 +192,7 @@ namespace Rh_Backend.Services
 
                 var funcionarioModel = await _repository.GetByIdAsync(funcionario.Id) ?? throw new NotFoundException("Funcionário não encontrado");
                 var feriasModel = await _feriasRepository.GetByFuncionarioAndStatusAsync(funcionario.Id, "Em Andamento");
+                if (!feriasModel.Any()) throw new BadRequestException("Não foi possível alterar historico do funcionario, funcionario sem ferias");
                 var cargoAntigoModel = await _cargoRepository.GetByNomeAsync(funcionario.CargoAntigo.Nome) ?? throw new NotFoundException("Cargo não encontrado");
                 var cargoNovoModel = await _cargoRepository.GetByNomeAsync(funcionario.CargoNovo.Nome) ?? throw new NotFoundException("Cargo não encontrado");
 
@@ -276,8 +277,6 @@ namespace Rh_Backend.Services
                     await _contratoRepository.UpdateAsync(funcionario.Id, cargoAntigoModel.Id, cargoNovoModel.Id);
                 }
 
-                await _repository.UpdateAsync(funcionarioModel);
-
                 var funcionarioComCargo = new FuncionarioComCargoReadDTO
                 {
                     Id = funcionarioModel.Id,
@@ -307,6 +306,7 @@ namespace Rh_Backend.Services
             {
                 if (id <= 0) throw new Exception("ID inválido");
                 if (!await _repository.ExistsAsync(id)) throw new NotFoundException("Funcionário não existe");
+                if (await _contratoRepository.ExistsFuncionarioAsync(id)) throw new BadRequestException("Contrato com esse funcionario ainda existe");
                 await _repository.DeleteAsync(id);
                 return true;
             }

@@ -10,5 +10,8 @@ namespace Rh_Backend.Repository.Interfaces
         Task<ContratoModel> UpdateAsync(long idFuncionario, long idCargoAntigo, long idCargoNovo);
         Task<bool> DeleteAsync(long idCargo, long idFuncionario);
         Task<bool> ExistsAsync(long idCargo, long idFuncionario);
+        Task<bool> ExistsCargoAsync(long idCargo);
+        Task<bool> ExistsFuncionarioAsync(long idFuncionario);
+
     }
 }

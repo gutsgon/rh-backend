@@ -23,21 +23,21 @@ namespace Rh_Backend.Controllers
             return Ok(ferias);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("/ferias{id}")]
         public async Task<IActionResult> ObterFeriasPorId(long id)
         {
             var ferias = await _feriasService.BuscarFeriasPorId(id);
             return Ok(ferias);
         }
 
-        [HttpGet("/idFuncionario/{idFuncionario}")]
+        [HttpGet("/ferias/idFuncionario/{idFuncionario}")]
         public async Task<IActionResult> ObterFeriasPorIdFuncionario(long idFuncionario)
         {
             var ferias = await _feriasService.BuscarFeriasPorIdFuncionario(idFuncionario);
             return Ok(ferias);
         }
 
-        [HttpPost("/obter-data")]
+        [HttpPost("/ferias/data")]
         public async Task<IActionResult> ObterFeriasPorData([FromBody] FeriasCreateDTO ferias)
         {
             var feriasDTO = await _feriasService.BuscarFeriasPorData(ferias.DataInicio, ferias.DataFim);
@@ -51,7 +51,7 @@ namespace Rh_Backend.Controllers
             return Ok(ferias);
         }
 
-        [HttpGet("idFuncionario/status/{idFuncionario}/{status}")]
+        [HttpGet("/ferias/idFuncionario/status/{idFuncionario}/{status}")]
         public async Task<IActionResult> ObterFeriasPorIdFuncionarioEStatus(long idFuncionario, string status)
         {
             var ferias = await _feriasService.BuscarFeriasPorFuncionarioEStatus(idFuncionario, status);
@@ -75,7 +75,7 @@ namespace Rh_Backend.Controllers
             return Ok(feriasDTO);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("/ferias/{id}")]
         public async Task<IActionResult> DeletarFerias(long id)
         {
             if (!await _feriasService.Exists(id)) return NotFound();

@@ -1,7 +1,9 @@
 using AutoMapper;
+using Microsoft.IdentityModel.Tokens;
 using Rh_Backend.DTO;
 using Rh_Backend.Exceptions;
 using Rh_Backend.Models;
+using Rh_Backend.Repository;
 using Rh_Backend.Repository.Interfaces;
 using Rh_Backend.Services.Interfaces;
 
@@ -10,14 +12,16 @@ namespace Rh_Backend.Services
     public class CargoService : ICargoService
     {
         private readonly ICargoRepository _cargoRepository;
+        private readonly IContratoRepository _contratoRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<CargoService> _logger;
 
-        public CargoService(ICargoRepository cargoRepository, IMapper mapper, ILogger<CargoService> logger)
+        public CargoService(ICargoRepository cargoRepository, IContratoRepository contratoRepository, IMapper mapper, ILogger<CargoService> logger)
         {
             _cargoRepository = cargoRepository;
             _mapper = mapper;
             _logger = logger;
+            _contratoRepository = contratoRepository;
         }
 
         public async Task<bool> ExistsPorNome(string nome)
@@ -27,7 +31,7 @@ namespace Rh_Backend.Services
                 if (string.IsNullOrEmpty(nome)) throw new BadRequestException("Nome do cargo não pode ser nulo ou vazio.");
                 if (nome.Any(char.IsDigit)) throw new BadRequestException("Apenas letras são permitidas");
                 var cargo = await _cargoRepository.ExistsByNomeAsync(nome);
-                return true;
+                return cargo;
 
             }
             catch (Exception ex)
@@ -106,7 +110,6 @@ namespace Rh_Backend.Services
                 if (string.IsNullOrEmpty(cargo.Nome)) throw new BadRequestException("Nome do cargo não pode ser nulo ou vazio.");
                 if (cargo.Nome.Length > 50) throw new BadRequestException("Nome do cargo não pode ter mais de 50 caracteres.");
                 if (await ExistsPorNome(cargo.Nome)) throw new BadRequestException("Cargo com este nome já existe.");
-                var teste = _mapper.Map<CargoModel>(cargo);
                 var cargoModel = await _cargoRepository.CreateAsync(_mapper.Map<CargoModel>(cargo));
                 return _mapper.Map<CargoReadDTO>(cargoModel);
             }
@@ -145,6 +148,7 @@ namespace Rh_Backend.Services
             {
                 if (id <= 0) throw new BadRequestException("ID do cargo deve ser maior que zero.");
                 if (!await Exists(id)) throw new NotFoundException("Cargo não encontrado.");
+                if (await _contratoRepository.ExistsCargoAsync(id)) throw new BadRequestException("Contrato com esse cargo ainda existe");
                 return await _cargoRepository.DeleteAsync(id);
             }
             catch (Exception ex)

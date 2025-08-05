@@ -20,7 +20,7 @@ namespace Rh_Backend.Repository
 
         public async Task<CargoModel?> GetByNomeAsync(string nome)
         {
-            return await _context.Cargo.FirstAsync(c => c.Nome == nome);
+            return await _context.Cargo.FirstOrDefaultAsync(c => c.Nome == nome);
         }
 
         public async Task<CargoModel?> GetByIdAsync(long id)
@@ -52,6 +52,7 @@ namespace Rh_Backend.Repository
 
             _context.Cargo.Remove(cargo);
             await _context.SaveChangesAsync();
+            _context.ChangeTracker.Clear();
             return true;
         }
 
@@ -62,7 +63,7 @@ namespace Rh_Backend.Repository
 
         public async Task<bool> ExistsByNomeAsync(string nome)
         {
-            return await _context.Cargo.AnyAsync(c => c.Nome == nome);
+            return await _context.Cargo.AsNoTracking().AnyAsync(c => c.Nome == nome);
         }
     }
 }

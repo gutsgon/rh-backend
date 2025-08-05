@@ -24,15 +24,15 @@ namespace Rh_Backend.Controllers
             return Ok(funcionarios);
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> ObterFuncionarioPorId([FromQuery] long id)
+        [HttpGet("/funcionario/{id}")]
+        public async Task<IActionResult> ObterFuncionarioPorId(long id)
         {
             var funcionario = await _funcionarioService.BuscarFuncionarioPorId(id);
             if (funcionario == null) return NotFound();
             return Ok(funcionario);
         }
 
-        [HttpPost("/filtrar")]
+        [HttpPost("/funcionario/filtrar")]
         public async Task<IActionResult> FiltrarFuncionarios([FromBody] FuncionarioCreateDTO funcionario)
         {
             var funcionarios = await _funcionarioService.BuscarFuncionarios(funcionario);
@@ -40,7 +40,7 @@ namespace Rh_Backend.Controllers
             return Ok(funcionarios);
         }
 
-        [HttpGet("/detalhes")]
+        [HttpGet("/funcionario/detalhes")]
         public async Task<IActionResult> ObterFuncionarioDetalhado(long id)
         {
             var funcionarioDetalhes = await _funcionarioService.BuscarFuncionarioDetalhado(id);
@@ -48,7 +48,7 @@ namespace Rh_Backend.Controllers
             return Ok(funcionarioDetalhes);
         }
 
-        [HttpGet("/cargo/{cargo}")]
+        [HttpGet("/funcionario/cargo/{cargo}")]
         public async Task<IActionResult> ObterFuncionariosPorCargo(string cargo)
         {
             var funcionarios = await _funcionarioService.BuscarFuncionariosPorCargo(cargo);
@@ -56,7 +56,7 @@ namespace Rh_Backend.Controllers
             return Ok(funcionarios);
         }
 
-        [HttpGet("/cargo")]
+        [HttpGet("/funcionario/cargo")]
         public async Task<IActionResult> ObterFuncionariosComCargo()
         {
             var funcionarios = await _funcionarioService.BuscarFuncionariosComCargo();
@@ -64,7 +64,7 @@ namespace Rh_Backend.Controllers
             return Ok(funcionarios);
         }
 
-        [HttpGet("/salario")]
+        [HttpGet("/funcionario/salario")]
         public async Task<IActionResult> CalcularMediaSalario()
         {
             var mediaSalario = await _funcionarioService.CalcularMediaSalario();
@@ -89,7 +89,7 @@ namespace Rh_Backend.Controllers
             return Ok(funcionarioAtualizado);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("/funcionario/{id}")]
         public async Task<IActionResult> DeletarFuncionario(long id)
         {
             var resultado = await _funcionarioService.DeletarFuncionario(id);

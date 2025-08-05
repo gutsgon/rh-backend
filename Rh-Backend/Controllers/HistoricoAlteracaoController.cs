@@ -24,7 +24,7 @@ namespace Rh_Backend.Controllers
             return Ok(historico);
         }
 
-        [HttpGet("/{id}")]
+        [HttpGet("/historico/{id}")]
         public async Task<IActionResult> ObterHistoricoPorId(long id)
         {
             var historico = await _historicoAlteracaoService.BuscarHistoricoPorId(id);
@@ -32,19 +32,19 @@ namespace Rh_Backend.Controllers
             return Ok(historico);
         }
 
-        [HttpGet("/{idFuncionario}/{idCargo}/{idFerias}")]
-        public async Task<IActionResult> ObterHistoricos(long idFuncionario, long? idCargo, long? idFerias)
+        [HttpGet("/historico/filtrar/{idFuncionario}")]
+        public async Task<IActionResult> ObterHistoricos(long idFuncionario, [FromQuery] long? idCargo, [FromQuery] long? idFerias)
         {
             var historico = await _historicoAlteracaoService.BuscarHistoricos(idFuncionario, idCargo, idFerias);
             if (historico == null) return NotFound();
             return Ok(historico);
         }
 
-        [HttpPost("/data")]
-        public async Task<IActionResult> ObterPorData([FromBody] HistoricoAlteracaoCreateDTO historico)
+        [HttpPost("/historico/data/{data}")]
+        public async Task<IActionResult> ObterPorData(DateTime data)
         {
-            if (historico == null) return BadRequest("Dados inválidos!");
-            var historicoDTO = await _historicoAlteracaoService.BuscarHistoricoPorData(historico.DataAlteracao);
+            if (data.ToString().Length == 0) return BadRequest("Dados inválidos!");
+            var historicoDTO = await _historicoAlteracaoService.BuscarHistoricoPorData(data);
             if (historicoDTO == null) return NotFound();
             return Ok(historicoDTO);
         }
@@ -58,7 +58,7 @@ namespace Rh_Backend.Controllers
             return CreatedAtAction(nameof(ObterHistoricoPorId), new { id = historicoDTO.Id }, historicoDTO);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("/historico/{id}")]
         public async Task<IActionResult> DeletarHistoricoAlteracao(long id)
         {
             if (!await _historicoAlteracaoService.Exists(id)) return NotFound();

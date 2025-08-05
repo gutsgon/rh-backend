@@ -24,7 +24,7 @@ namespace Rh_Backend.Controllers
             return Ok(cargos);
         }
 
-        [HttpGet("/nome/{nome}")]
+        [HttpGet("/cargo/nome/{nome}")]
         public async Task<IActionResult> ObterCargoPorNome(string nome)
         {
             var cargo = await _cargoService.BuscarCargoPorNome(nome);
@@ -32,7 +32,7 @@ namespace Rh_Backend.Controllers
             return Ok(cargo);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("/cargo/{id}")]
         public async Task<IActionResult> ObterCargoPorId(long id)
         {
             var cargo = await _cargoService.BuscarCargoPorId(id);
@@ -57,7 +57,7 @@ namespace Rh_Backend.Controllers
             return Ok(novoCargo);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("/cargo/{id}")]
         public async Task<IActionResult> DeletarCargo(long id)
         {
             if (!await _cargoService.Exists(id)) return NotFound();

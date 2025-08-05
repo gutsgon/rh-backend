@@ -23,7 +23,7 @@ namespace Rh_Backend.Controllers
             return Ok(contratos);
         }
 
-        [HttpGet("/{idCargo}/{idFuncionario}")]
+        [HttpGet("/contrato/{idCargo}/{idFuncionario}")]
         public async Task<IActionResult> ObterContratoById(long idCargo, long idFuncionario)
         {
             var contrato = await _contratoService.BuscarContratoPorId(idCargo, idFuncionario);
@@ -40,7 +40,7 @@ namespace Rh_Backend.Controllers
             return CreatedAtAction(nameof(ObterContratoById), new { idCargo = novoContrato.IdCargo, idFuncionario = novoContrato.IdFuncionario }, novoContrato);
         }
 
-        [HttpPut("/{idFuncionario}/{idCargoAtigo}/{idCargoNovo}")]
+        [HttpPut("/contrato/{idFuncionario}/{idCargoAntigo}/{idCargoNovo}")]
         public async Task<IActionResult> AtualizarContrato(long idFuncionario, long idCargoAntigo, long idCargoNovo)
         {
             var contrato = await _contratoService.AtualizarContrato(idFuncionario, idCargoAntigo, idCargoNovo);
@@ -48,7 +48,7 @@ namespace Rh_Backend.Controllers
             return Ok(contrato);
         }
 
-        [HttpDelete("/{idCargo}/{idFuncionario}")]
+        [HttpDelete("/contrato/{idCargo}/{idFuncionario}")]
         public async Task<IActionResult> DeletarContrato(long idCargo, long idFuncionario)
         {
             if (!await _contratoService.ExistsPorId(idCargo,idFuncionario)) return NotFound();

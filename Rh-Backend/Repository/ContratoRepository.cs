@@ -22,7 +22,7 @@ namespace Rh_Backend.Repository
         public async Task<ContratoModel?> GetByIdAsync(long idCargo, long idFuncionario)
         {
             return await _context.Contrato
-                .FirstAsync(c => c.IdCargo == idCargo && c.IdFuncionario == idFuncionario);
+                .FirstOrDefaultAsync(c => c.IdCargo == idCargo && c.IdFuncionario == idFuncionario);
         }
 
         public async Task<ContratoModel> CreateAsync(ContratoModel contrato)
@@ -75,6 +75,7 @@ namespace Rh_Backend.Repository
 
             _context.Contrato.Remove(contrato);
             await _context.SaveChangesAsync();
+            _context.ChangeTracker.Clear();
             return true;
         }
 
@@ -82,5 +83,16 @@ namespace Rh_Backend.Repository
         {
             return await _context.Contrato.AnyAsync(c => c.IdFuncionario == idFuncionario && c.IdCargo == idCargo);
         }
+
+        public async Task<bool> ExistsCargoAsync(long idCargo)
+        {
+            return await _context.Contrato.AnyAsync(c => c.IdCargo == idCargo);
+        }
+
+        public async Task<bool> ExistsFuncionarioAsync(long idFuncionario)
+        {
+            return await _context.Contrato.AnyAsync(c => c.IdFuncionario == idFuncionario);
+        }
+
     }    
 }

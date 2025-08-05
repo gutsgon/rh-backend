@@ -11,11 +11,6 @@ builder.Logging.AddConsole();
 Env.Load();
 var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
 
-// Add services to the container.
-
-// LEMBRARRRRRRRRRRRR DOS TESTESSSSSSS UNITÁRIOS
-// LEMBRARRRRRRRRRRRR DOS TESTESSSSSSS INTEGRAÇÃO
-// LEMBRARRRRRRRRRRRR DOS TESTESSSSSSS UNITÁRIOS
 
 builder.Services.AddControllers();
 
@@ -34,9 +29,6 @@ builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddDbContext<AppDbContext>(options =>{ options.UseSqlServer(connectionString);});
 builder.Services.AddApplicationServices();
 
-
-
-
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
 
@@ -45,6 +37,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseStaticFiles();
 }
 
 app.UseCors("AllowAll");
