@@ -1,29 +1,27 @@
-
-# Esta fase é usada durante a execução no VS no modo rápido (Padrão para a configuração de Depuração)
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER $APP_UID
+# Base com ASP.NET Runtime
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+USER root
 WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
+EXPOSE 5234
 
-
-# Esta fase é usada para compilar o projeto de serviço
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
+# SDK com ferramentas de desenvolvimento
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS dev
 WORKDIR /src
+
+# Copia apenas o csproj e restaura as dependências
 COPY ["Rh-Backend/Rh-Backend.csproj", "Rh-Backend/"]
-RUN dotnet restore "./Rh-Backend/Rh-Backend.csproj"
+RUN dotnet restore "Rh-Backend/Rh-Backend.csproj"
+
+# Copia o restante dos arquivos
 COPY . .
+
 WORKDIR "/src/Rh-Backend"
-RUN dotnet build "./Rh-Backend.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-# Esta fase é usada para publicar o projeto de serviço a ser copiado para a fase final
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./Rh-Backend.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+# Instala o dotnet-watch globalmente
+RUN dotnet tool install --global dotnet-watch
 
-# Esta fase é usada na produção ou quando executada no VS no modo normal (padrão quando não está usando a configuração de Depuração)
-FROM base AS final
-WORKDIR /app
-COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Rh-Backend.dll"]
+# Adiciona o caminho das ferramentas ao PATH
+ENV PATH="$PATH:/root/.dotnet/tools"
+
+# Usa dotnet watch para hot reload no desenvolvimento
+ENTRYPOINT ["dotnet", "watch", "run", "--urls", "http://0.0.0.0:5234"]

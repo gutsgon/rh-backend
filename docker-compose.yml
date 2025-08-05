@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    ports:
+      - "1433:1433"
+    environment:
+      SA_PASSWORD: "123"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Express"
+    volumes:
+      - mssql_data:/var/opt/mssql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: >
+      bash -c "
+        /opt/mssql/bin/sqlservr & 
+        sleep 20 && 
+        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 123 -i /docker-entrypoint-initdb.d/init.sql
+      "
+    networks:
+      - rh-network
+
+  api:
+    build:
+      context: .
+      dockerfile: /Rh-Backend/Dockerfile
+    container_name: rh-backend
+    ports:
+      - "5234:5234"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - DATABASE_URL=Server=db;Database=Rh;User Id=sa;Password=123;TrustServerCertificate=True;
+    depends_on:
+      - db
+    networks:
+      - rh-network
+
+volumes:
+  mssql_data:
+
+networks:
+  rh-network:
+    driver: bridge
