@@ -1,0 +1,63 @@
+-- Cria o banco de dados
+CREATE DATABASE Rh;
+GO
+
+-- Usa o banco
+USE Rh;
+GO
+
+-- Cria o login e usuário
+CREATE LOGIN adminRh WITH PASSWORD = '123', CHECK_POLICY = OFF, CHECK_EXPIRATION = OFF;
+GO
+
+CREATE USER adminRh FOR LOGIN adminRh;
+GO
+
+ALTER ROLE db_owner ADD MEMBER adminRh;
+GO
+
+-- Criação das tabelas
+CREATE TABLE cargo(
+	id BIGINT IDENTITY PRIMARY KEY,
+	nome NVARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE funcionario(
+	id BIGINT IDENTITY PRIMARY KEY,
+	nome NVARCHAR(150) NOT NULL,
+	dataAdmissao DATE NOT NULL DEFAULT GETDATE(),
+	salario NUMERIC(18,2) NOT NULL DEFAULT 0,
+	[status] BIT NOT NULL DEFAULT 0
+);
+
+CREATE TABLE contrato(
+	idFuncionario BIGINT,
+	idCargo BIGINT,
+	PRIMARY KEY (idFuncionario, idCargo),
+	CONSTRAINT FK_FUNCIONARIO FOREIGN KEY (idFuncionario) REFERENCES funcionario(id),
+	CONSTRAINT FK_CARGO FOREIGN KEY (idCargo) REFERENCES cargo(id)
+);
+
+CREATE TABLE ferias(
+	id BIGINT IDENTITY PRIMARY KEY,
+	dataInicio DATE NOT NULL,
+	dataFim DATE NOT NULL,
+	[status] NVARCHAR(50) NOT NULL,
+	idFuncionario BIGINT NOT NULL,
+	CONSTRAINT FK_FERIAS_FUNCIONARIO FOREIGN KEY(idFuncionario) REFERENCES funcionario(id),
+	CONSTRAINT CHECK_STATUS_FERIAS CHECK ([status] IN ('Pendente', 'Em andamento', 'Concluídas'))
+);
+
+CREATE TABLE historicoAlteracao(
+	id BIGINT IDENTITY PRIMARY KEY,
+	idFuncionario BIGINT NOT NULL,
+	idCargo BIGINT NOT NULL,
+	idFerias BIGINT NOT NULL,
+	dataAlteracao DATETIME NOT NULL,
+	campoAlterado NVARCHAR(50) NOT NULL,
+	valorAntigo NVARCHAR(255) NOT NULL,
+	valorNovo NVARCHAR(255) NOT NULL,
+	CONSTRAINT FK_FUNCIONARIO_HISTORICO_ALTERACAO FOREIGN KEY (idFuncionario) REFERENCES funcionario(id),
+	CONSTRAINT FK_CARGO_HISTORICO_ALTERACAO FOREIGN KEY (idCargo) REFERENCES cargo(id),
+	CONSTRAINT FK_FERIAS_HISTORICO_ALTERACAO FOREIGN KEY (idFerias) REFERENCES ferias(id)
+);
