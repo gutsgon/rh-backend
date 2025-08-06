@@ -1,30 +1,80 @@
-# Rh-Backend
+# 🧾 Rh-Backend (.NET 9)
 
 API backend desenvolvida em .NET 9 para gestão de funcionários, cargos, contratos, férias e histórico de alterações.
 
 ---
 
-## Pré-Requisitos
+## 🚀 Tecnologias Utilizadas
 
-Antes de rodar o projeto, certifique-se de ter instalado:
-
-- [.NET 9 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)(opcional)
-- [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)(opcional) (Express ou versão completa)
-- [Docker](https://www.docker.com/get-started) (recomendavel, para execução em containers)
-- IDE de sua preferência (Visual Studio, Visual Studio Code, Rider, etc.)
+- 🧠 **Backend**: ASP.NET Core (.NET 9)
+- 🐘 **Banco de Dados**: SQL Server
+- 🐋 **Containerização**: Docker & Docker Compose
 
 ---
 
-## Instruções para Rodar o Sistema Localmente
+## ⚙️ Pré-requisitos
 
-### 1. Configuração do Banco de Dados
+- [.NET 9 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/9.0) (opcional)
+- [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads) (opcional)
+- [Docker](https://www.docker.com/get-started) (recomendado)
 
-- Instale e configure o SQL Server localmente.
-- Execute o script SQL para criação do banco e tabelas, localizado em `init.sql`.
+---
 
-### 2. Restaurar e Executar a API
+## 💻 Rodando localmente com Docker
 
-- Abra o terminal na raiz do projeto e execute:
+### 1. Clone o repositório
+
+```bash
+git clone https://github.com/seu-usuario/rh-backend.git
+cd rh-backend
+```
+
+### 2. Configure o ambiente
+
+- Configure suas variáveis de ambiente ou use as padrões no `docker-compose.yml`.
+- Certifique-se de que as portas `5234` (API) e `1433` (SQL Server) estejam livres.
+
+### 3. Execute com Docker
+
+```bash
+docker-compose up --build
+```
+
+Esse comando irá:
+
+- Subir o SQL Server com os dados iniciais definidos em `init.sql`
+- Buildar e rodar a API na porta `5234`
+
+---
+
+### 4. Acesse a aplicação
+
+- **Swagger da API**: http://localhost:5234/swagger/index.html
+
+---
+
+## 🗃️ Acesso ao Banco de Dados
+
+- **Usuário**: `adminRh`  
+- **Senha**: `123`  
+- O banco e as tabelas são criados automaticamente via script `init.sql`.
+
+---
+
+## 🧪 Testes
+
+O projeto inclui **5 testes automatizados**, um para cada classe principal da aplicação (`Funcionário`, `Cargo`, `Contrato`, `Férias` e `Histórico`).  
+Eles estão organizados na pasta de testes e podem ser executados com:
+
+```bash
+dotnet test
+```
+
+---
+
+## 🧪 Executar localmente sem Docker
+
+Se preferir executar diretamente via .NET CLI:
 
 ```bash
 dotnet restore
@@ -32,38 +82,19 @@ dotnet build
 dotnet run --project Rh-Backend/Rh-Backend.csproj
 ```
 
-- A aplicação estará disponível em `http://localhost:5234`
+A API estará acessível em `http://localhost:5234`
 
 ---
 
-## Rodando com Docker e Docker Compose (Recomendado)
-
-Para rodar o banco de dados e a API usando Docker, execute:
-
-```bash
-docker-compose up --build
-```
-
-- O SQL Server estará rodando com o banco configurado.
-- A API será exposta na porta 5234.
-
----
-
-## Considerações sobre o Banco de Dados
-
-- Usuário de conexão: `adminRh` com senha `123` (uso para ambiente de desenvolvimento).
-- As tabelas são criadas conforme o script disponibilizado no repositório.
-- O campo `status` da tabela `ferias` é restrito aos valores `'Pendente', 'Em andamento', 'Concluídas'` via constraint CHECK.
-- Certifique-se de que o SQL Server permite conexões TCP na porta configurada.
-
----
-
-## Endpoint do Swagger para Teste da API
-
-Após iniciar a aplicação, acesse o Swagger UI para testar a API em:
+## 🧱 Estrutura do Projeto
 
 ```
-http://localhost:5234/swagger/index.html
+/Rh-Backend
+  ├── Controllers/
+  ├── Models/
+  ├── Services/
+  ├── Data/
+  ├── Tests/
+  ├── init.sql
+  └── Program.cs
 ```
-
----
