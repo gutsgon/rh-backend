@@ -8904,24 +8904,31 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\izzie\\.nuget\\packages\\": {}
+    "C:\\Users\\Usuário\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\izzie\\Desktop\\Gugu codes\\backend\\Rh-Backend\\Rh-Backend\\Rh-Backend.csproj",
+      "projectUniqueName": "C:\\Users\\Usuário\\Desktop\\Tudo relacionado a PROGRAMAÇÃO\\Testes\\Vaga ZDoc\\backend\\Rh-Backend\\Rh-Backend\\Rh-Backend.csproj",
       "projectName": "Rh-Backend",
-      "projectPath": "C:\\Users\\izzie\\Desktop\\Gugu codes\\backend\\Rh-Backend\\Rh-Backend\\Rh-Backend.csproj",
-      "packagesPath": "C:\\Users\\izzie\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\izzie\\Desktop\\Gugu codes\\backend\\Rh-Backend\\Rh-Backend\\obj\\",
+      "projectPath": "C:\\Users\\Usuário\\Desktop\\Tudo relacionado a PROGRAMAÇÃO\\Testes\\Vaga ZDoc\\backend\\Rh-Backend\\Rh-Backend\\Rh-Backend.csproj",
+      "packagesPath": "C:\\Users\\Usuário\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Usuário\\Desktop\\Tudo relacionado a PROGRAMAÇÃO\\Testes\\Vaga ZDoc\\backend\\Rh-Backend\\Rh-Backend\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
       "configFilePaths": [
-        "C:\\Users\\izzie\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\Usuário\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
         "net9.0"
       ],
       "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -9026,7 +9033,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.300/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

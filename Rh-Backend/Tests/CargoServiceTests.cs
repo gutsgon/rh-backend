@@ -6,6 +6,8 @@ using Rh_Backend.DTO;
 using AutoMapper;
 using Rh_Backend.Models;
 using Microsoft.Extensions.Logging;
+using Rh_Backend.Data;
+using Rh_Backend.Repository;
 
 public class CargoServiceTests
 {
@@ -24,143 +26,194 @@ public class CargoServiceTests
     }
 
     [Fact]
-    public async Task CriarCargo_DeveRetornarCargoReadDTO_QuandoSucesso()
+    public async Task CriarCargo_DeveRetornarCargoCriado()
     {
-        var mockRepo = new Mock<ICargoRepository>();
-        var mockContratoRepo = new Mock<IContratoRepository>();
+        var context = TestHelper.GetInMemoryDbContext();
+
+        var cargoRepository = new CargoRepository(context);
+        var contratoRepository = new ContratoRepository(context);
+
         var mockMapper = new Mock<IMapper>();
         var mockLogger = new Mock<ILogger<CargoService>>();
 
-        var cargoCreateDTO = new CargoCreateDTO { Nome = "Analista" };
-        var cargoModel = new CargoModel { Id = 1, Nome = "Analista" };
-        var cargoReadDTO = new CargoReadDTO { Id = 1, Nome = "Analista" };
+        var cargoDto = new CargoCreateDTO { Nome = "Desenvolvedor" };
 
-        mockRepo.Setup(r => r.ExistsByNomeAsync("Analista")).ReturnsAsync(false);
-        mockRepo.Setup(r => r.CreateAsync(cargoModel)).ReturnsAsync(cargoModel);
-        mockMapper.Setup(m => m.Map<CargoModel>(cargoCreateDTO)).Returns(cargoModel);
-        mockMapper.Setup(m => m.Map<CargoReadDTO>(cargoModel)).Returns(cargoReadDTO);
+        var cargoEntity = new CargoModel { Id = 1, Nome = "Desenvolvedor" };
+        var cargoReadDto = new CargoReadDTO { Id = 1, Nome = "Desenvolvedor" };
 
-        var service = GetService(mockRepo, mockContratoRepo, mockMapper, mockLogger);
+        mockMapper.Setup(m => m.Map<CargoModel>(cargoDto)).Returns(cargoEntity);
+        mockMapper.Setup(m => m.Map<CargoReadDTO>(cargoEntity)).Returns(cargoReadDto);
 
-        var result = await service.CriarCargo(cargoCreateDTO);
+        var service = new CargoService(
+            cargoRepository,
+            contratoRepository,
+            mockMapper.Object,
+            mockLogger.Object
+        );
+
+        var result = await service.CriarCargo(cargoDto);
 
         Assert.NotNull(result);
-        Assert.Equal("Analista", result.Nome);
+        Assert.Equal("Desenvolvedor", result.Nome);
     }
+        [Fact]
+        public async Task BuscarCargoPorId_DeveRetornarCargoReadDTO_QuandoEncontrado()
+        {
+            // Arrange
+            var context = TestHelper.GetInMemoryDbContext();
 
-    [Fact]
-    public async Task BuscarCargoPorId_DeveRetornarCargoReadDTO_QuandoEncontrado()
-    {
-        var mockRepo = new Mock<ICargoRepository>();
-        var mockContratoRepo = new Mock<IContratoRepository>();
-        var mockMapper = new Mock<IMapper>();
-        var mockLogger = new Mock<ILogger<CargoService>>();
+            // Adiciona cargo no contexto in-memory
+            context.Add(new CargoModel { Id = 1, Nome = "Analista" });
+            await context.SaveChangesAsync();
 
-        var cargoModel = new CargoModel { Id = 1, Nome = "Analista" };
-        var cargoReadDTO = new CargoReadDTO { Id = 1, Nome = "Analista" };
+            var cargoRepository = new CargoRepository(context);
+            var contratoRepository = new ContratoRepository(context);
 
-        mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(cargoModel);
-        mockMapper.Setup(m => m.Map<CargoReadDTO>(cargoModel)).Returns(cargoReadDTO);
+            var mockMapper = new Mock<IMapper>();
+            var mockLogger = new Mock<ILogger<CargoService>>();
 
-        var service = GetService(mockRepo, mockContratoRepo, mockMapper, mockLogger);
+            var cargoModel = new CargoModel { Id = 1, Nome = "Analista" };
+            var cargoReadDTO = new CargoReadDTO { Id = 1, Nome = "Analista" };
 
-        var result = await service.BuscarCargoPorId(1);
+            mockMapper.Setup(m => m.Map<CargoReadDTO>(It.Is<CargoModel>(c => c.Id == 1))).Returns(cargoReadDTO);
 
-        Assert.NotNull(result);
-        Assert.Equal(1, result.Id);
-    }
+            var service = new CargoService(cargoRepository, contratoRepository, mockMapper.Object, mockLogger.Object);
 
-    [Fact]
-    public async Task BuscarCargoPorNome_DeveRetornarCargoReadDTO_QuandoEncontrado()
-    {
-        var mockRepo = new Mock<ICargoRepository>();
-        var mockContratoRepo = new Mock<IContratoRepository>();
-        var mockMapper = new Mock<IMapper>();
-        var mockLogger = new Mock<ILogger<CargoService>>();
+            // Act
+            var result = await service.BuscarCargoPorId(1);
 
-        var cargoModel = new CargoModel { Id = 1, Nome = "Analista" };
-        var cargoReadDTO = new CargoReadDTO { Id = 1, Nome = "Analista" };
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(1, result.Id);
+            Assert.Equal("Analista", result.Nome);
+        }
 
-        mockRepo.Setup(r => r.GetByNomeAsync("Analista")).ReturnsAsync(cargoModel);
-        mockMapper.Setup(m => m.Map<CargoReadDTO>(cargoModel)).Returns(cargoReadDTO);
+        [Fact]
+        public async Task BuscarCargoPorNome_DeveRetornarCargoReadDTO_QuandoEncontrado()
+        {
+            // Arrange
+            var context = TestHelper.GetInMemoryDbContext();
 
-        var service = GetService(mockRepo, mockContratoRepo, mockMapper, mockLogger);
+            context.Add(new CargoModel { Id = 1, Nome = "Analista" });
+            await context.SaveChangesAsync();
 
-        var result = await service.BuscarCargoPorNome("Analista");
+            var cargoRepository = new CargoRepository(context);
+            var contratoRepository = new ContratoRepository(context);
 
-        Assert.NotNull(result);
-        Assert.Equal("Analista", result.Nome);
-    }
+            var mockMapper = new Mock<IMapper>();
+            var mockLogger = new Mock<ILogger<CargoService>>();
 
-    [Fact]
-    public async Task AtualizarCargo_DeveRetornarCargoReadDTO_QuandoSucesso()
-    {
-        var mockRepo = new Mock<ICargoRepository>();
-        var mockContratoRepo = new Mock<IContratoRepository>();
-        var mockMapper = new Mock<IMapper>();
-        var mockLogger = new Mock<ILogger<CargoService>>();
+            var cargoModel = new CargoModel { Id = 1, Nome = "Analista" };
+            var cargoReadDTO = new CargoReadDTO { Id = 1, Nome = "Analista" };
 
-        var cargoUpdateDTO = new CargoUpdateDTO { Id = 1, Nome = "Analista Sênior" };
-        var cargoModel = new CargoModel { Id = 1, Nome = "Analista Sênior" };
-        var cargoReadDTO = new CargoReadDTO { Id = 1, Nome = "Analista Sênior" };
+            mockMapper.Setup(m => m.Map<CargoReadDTO>(It.Is<CargoModel>(c => c.Nome == "Analista"))).Returns(cargoReadDTO);
 
-        mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(cargoModel);
-        mockRepo.Setup(r => r.UpdateAsync(cargoModel)).ReturnsAsync(cargoModel);
-        mockMapper.Setup(m => m.Map<CargoModel>(cargoUpdateDTO)).Returns(cargoModel);
-        mockMapper.Setup(m => m.Map<CargoReadDTO>(cargoModel)).Returns(cargoReadDTO);
+            var service = new CargoService(cargoRepository, contratoRepository, mockMapper.Object, mockLogger.Object);
 
-        var service = GetService(mockRepo, mockContratoRepo, mockMapper, mockLogger);
+            // Act
+            var result = await service.BuscarCargoPorNome("Analista");
 
-        var result = await service.AtualizarCargo(cargoUpdateDTO);
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal("Analista", result.Nome);
+        }
 
-        Assert.NotNull(result);
-        Assert.Equal("Analista Sênior", result.Nome);
-    }
+        [Fact]
+        public async Task AtualizarCargo_DeveRetornarCargoReadDTO_QuandoSucesso()
+        {
+            // Arrange
+            var context = TestHelper.GetInMemoryDbContext();
 
-    [Fact]
-    public async Task DeletarCargo_DeveRetornarTrue_QuandoSucesso()
-    {
-        var mockRepo = new Mock<ICargoRepository>();
-        var mockContratoRepo = new Mock<IContratoRepository>();
-        var mockMapper = new Mock<IMapper>();
-        var mockLogger = new Mock<ILogger<CargoService>>();
+            // Cargo inicial
+            var cargoOriginal = new CargoModel { Id = 1, Nome = "Analista" };
+            context.Add(cargoOriginal);
+            await context.SaveChangesAsync();
 
-        mockRepo.Setup(r => r.DeleteAsync(1)).ReturnsAsync(true);
+            var cargoRepository = new CargoRepository(context);
+            var contratoRepository = new ContratoRepository(context);
 
-        var service = GetService(mockRepo, mockContratoRepo, mockMapper, mockLogger);
+            var mockMapper = new Mock<IMapper>();
+            var mockLogger = new Mock<ILogger<CargoService>>();
 
-        var result = await service.DeletarCargo(1);
+            var cargoUpdateDTO = new CargoUpdateDTO { Id = 1, Nome = "Analista Sênior" };
+            var cargoAtualizado = new CargoModel { Id = 1, Nome = "Analista Sênior" };
+            var cargoReadDTO = new CargoReadDTO { Id = 1, Nome = "Analista Sênior" };
 
-        Assert.True(result);
-    }
+            // Setup mapper para converter UpdateDTO -> Model
+            mockMapper.Setup(m => m.Map<CargoModel>(cargoUpdateDTO)).Returns(cargoAtualizado);
+            // Setup mapper para converter Model -> ReadDTO
+            mockMapper.Setup(m => m.Map<CargoReadDTO>(cargoAtualizado)).Returns(cargoReadDTO);
 
-    [Fact]
-    public async Task ListarTodosCargos_DeveRetornarListaDeCargoReadDTO()
-    {
-        var mockRepo = new Mock<ICargoRepository>();
-        var mockContratoRepo = new Mock<IContratoRepository>();
-        var mockMapper = new Mock<IMapper>();
-        var mockLogger = new Mock<ILogger<CargoService>>();
+            var service = new CargoService(cargoRepository, contratoRepository, mockMapper.Object, mockLogger.Object);
 
-        var cargos = new List<CargoModel>
+            // Act
+            var result = await service.AtualizarCargo(cargoUpdateDTO);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal("Analista Sênior", result.Nome);
+        }
+
+        [Fact]
+        public async Task DeletarCargo_DeveRetornarTrue_QuandoSucesso()
+        {
+            // Arrange
+            var context = TestHelper.GetInMemoryDbContext();
+
+            context.Add(new CargoModel { Id = 1, Nome = "Analista" });
+            await context.SaveChangesAsync();
+
+            var cargoRepository = new CargoRepository(context);
+            var contratoRepository = new ContratoRepository(context);
+
+            var mockMapper = new Mock<IMapper>();
+            var mockLogger = new Mock<ILogger<CargoService>>();
+
+            var service = new CargoService(cargoRepository, contratoRepository, mockMapper.Object, mockLogger.Object);
+
+            // Act
+            var result = await service.DeletarCargo(1);
+
+            // Assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public async Task ListarTodosCargos_DeveRetornarListaDeCargoReadDTO()
+        {
+            // Arrange
+            var context = TestHelper.GetInMemoryDbContext();
+
+            var cargos = new List<CargoModel>
         {
             new CargoModel { Id = 1, Nome = "Analista" },
             new CargoModel { Id = 2, Nome = "Desenvolvedor" }
         };
-        var cargosDTO = new List<CargoReadDTO>
+
+            context.AddRange(cargos);
+            await context.SaveChangesAsync();
+
+            var cargoRepository = new CargoRepository(context);
+            var contratoRepository = new ContratoRepository(context);
+
+            var mockMapper = new Mock<IMapper>();
+            var mockLogger = new Mock<ILogger<CargoService>>();
+
+            var cargosDTO = new List<CargoReadDTO>
         {
             new CargoReadDTO { Id = 1, Nome = "Analista" },
             new CargoReadDTO { Id = 2, Nome = "Desenvolvedor" }
         };
 
-        mockRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(cargos);
-        mockMapper.Setup(m => m.Map<IEnumerable<CargoReadDTO>>(cargos)).Returns(cargosDTO);
+            mockMapper.Setup(m => m.Map<IEnumerable<CargoReadDTO>>(It.IsAny<IEnumerable<CargoModel>>())).Returns(cargosDTO);
 
-        var service = GetService(mockRepo, mockContratoRepo, mockMapper, mockLogger);
+            var service = new CargoService(cargoRepository, contratoRepository, mockMapper.Object, mockLogger.Object);
 
-        var result = await service.ListarTodosCargos();
+            // Act
+            var result = await service.ListarTodosCargos();
 
-        Assert.NotNull(result);
-        Assert.Equal(2, ((List<CargoReadDTO>)result).Count);
-    }
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Count());
+        }
 }
